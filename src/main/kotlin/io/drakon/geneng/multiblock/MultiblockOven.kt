@@ -9,6 +9,8 @@ import net.minecraftforge.common.util.ForgeDirection.*
 import blusunrize.immersiveengineering.api.MultiblockHandler.IMultiblock
 import blusunrize.immersiveengineering.common.IEContent
 import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalDecoration
+import io.drakon.geneng.util.Coord
+import io.drakon.geneng.util.MaskedWorldAccessor
 
 import io.drakon.geneng.util.const.log
 import io.drakon.geneng.util.convenience.*
@@ -63,39 +65,62 @@ public object MultiblockOven : IMultiblock {
 
         // Find which radiator we are...a
         // Using the side, we know we're one of two blocks.
-        val corner = object { var x=x; var y=y; var z=z }
+        val corner = Coord(x,y,z); //object { var x=x; var y=y; var z=z }
         var facing = getOrientation(side) // Direction from input face to output face; structure extends this way
         var siding:ForgeDirection // Direction the structure extends towards from the given corner
         when (facing) {
-            EAST, WEST -> {
-                if (world.getBlock(x,y,z+1) == IEContent.blockMetalDecoration && world.getBlockMetadata(x,y,z+1) == BlockMetalDecoration.META_lightEngineering) {
-                    corner.z += 1
-                    siding = NORTH
-                } else if (world.getBlock(x,y,z-1) == IEContent.blockMetalDecoration && world.getBlockMetadata(x,y,z-1) == BlockMetalDecoration.META_lightEngineering) {
+            WEST -> {
+                if (world.getBlock(x,y,z-1) == IEContent.blockMetalDecoration && world.getBlockMetadata(x,y,z-1) == BlockMetalDecoration.META_lightEngineering) {
                     corner.z -= 1
+                    siding = SOUTH
+                } else if (world.getBlock(x,y,z-2) == IEContent.blockMetalDecoration && world.getBlockMetadata(x,y,z-2) == BlockMetalDecoration.META_lightEngineering) {
+                    corner.z -= 2
                     siding = SOUTH
                 } else return false
             }
-            NORTH, SOUTH -> {
+            EAST -> {
+                if (world.getBlock(x,y,z+1) == IEContent.blockMetalDecoration && world.getBlockMetadata(x,y,z+1) == BlockMetalDecoration.META_lightEngineering) {
+                    corner.z += 1
+                    siding = SOUTH
+                } else if (world.getBlock(x,y,z+2) == IEContent.blockMetalDecoration && world.getBlockMetadata(x,y,z+2) == BlockMetalDecoration.META_lightEngineering) {
+                    corner.z += 2
+                    siding = SOUTH
+                } else return false
+            }
+            NORTH -> {
+                if (world.getBlock(x+1,y,z) == IEContent.blockMetalDecoration && world.getBlockMetadata(x+1,y,z) == BlockMetalDecoration.META_lightEngineering) {
+                    corner.x += 1
+                    siding = WEST
+                } else if (world.getBlock(x+2,y,z) == IEContent.blockMetalDecoration && world.getBlockMetadata(x+2,y,z) == BlockMetalDecoration.META_lightEngineering) {
+                    corner.x += 2
+                    siding = WEST
+                } else return false
+            }
+            SOUTH -> {
                 if (world.getBlock(x-1,y,z) == IEContent.blockMetalDecoration && world.getBlockMetadata(x-1,y,z) == BlockMetalDecoration.META_lightEngineering) {
                     corner.x -= 1
-                    siding = EAST
-                } else if (world.getBlock(x+1,y,z) == IEContent.blockMetalDecoration && world.getBlockMetadata(x+1,y,z) == BlockMetalDecoration.META_lightEngineering) {
-                    corner.x += 1
+                    siding = WEST
+                } else if (world.getBlock(x-2,y,z) == IEContent.blockMetalDecoration && world.getBlockMetadata(x-2,y,z) == BlockMetalDecoration.META_lightEngineering) {
+                    corner.x -= 2
                     siding = WEST
                 } else return false
             }
             else -> return false // Derp?
         }
+        corner.y -= 2
         sendMessageToPlayer(plr, corner.toString())
         sendMessageToPlayer(plr, siding.name())
-        val valid = check(world, corner.x, corner.y, corner.z, facing, siding)
+        val valid = check(world, corner, facing, siding)
         sendMessageToPlayer(plr, valid.toString())
         return false // TODO
     }
 
-    private fun check(w:World, x: Int, y: Int, z: Int, facing:ForgeDirection, siding:ForgeDirection): Boolean {
-        // TODO
+    private fun check(w:World, corner:Coord, facing:ForgeDirection, siding:ForgeDirection): Boolean {
+        val access = MaskedWorldAccessor(w, facing, corner) // So we don't have to worry about rotation logic
+
+        // TEMP
+        log.info("Base: {}, Forward1: {}, Right1: {}", access.getBlock(Coord(0,0,0)), access.getBlock(Coord(0,0,1)), access.getBlock(Coord(1,0,0)))
+
         return false
     }
 
