@@ -53,4 +53,9 @@ public class MaskedWorldAccessor(world:World, private val direction: ForgeDirect
         return w.getTileEntity(transform(coord));
     }
 
+    public fun isAir(coord: Coord): Boolean {
+        val w = world.get() ?: return false
+        return w.isAir(transform(coord))
+    }
+
 }

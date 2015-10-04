@@ -22,3 +22,7 @@ public fun World.getBlockMeta(coord: Coord): Int {
 public fun World.getTileEntity(coord:Coord): TileEntity? {
     return this.getTileEntity(coord.x, coord.y, coord.z)
 }
+
+public fun World.isAir(coord: Coord): Boolean {
+    return this.isAirBlock(coord.x, coord.y, coord.z)
+}

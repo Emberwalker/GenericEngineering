@@ -15,6 +15,7 @@ import io.drakon.geneng.util.MaskedWorldAccessor
 import io.drakon.geneng.util.const.log
 import io.drakon.geneng.util.convenience.*
 import net.minecraftforge.common.util.ForgeDirection
+import java.util.*
 
 /**
  * Moar food, in moar space!
@@ -24,6 +25,7 @@ import net.minecraftforge.common.util.ForgeDirection
 public object MultiblockOven : IMultiblock {
 
     private final val structure = Array(3, {Array(4, {arrayOfNulls<ItemStack>(2)})})
+    private final val structureComponents:MutableMap<Coord, Pair<Block?, Int>> = hashMapOf()
 
     // Populate structure
     // "slices" are linear along the structure.
@@ -32,10 +34,26 @@ public object MultiblockOven : IMultiblock {
             for (slice in structure[h].indices) {
                 for (w in structure[h][slice].indices) {
                     when (slice) {
-                        0, 3 -> structure[h][slice][w] = ItemStack(IEContent.blockMetalDecoration, 1, BlockMetalDecoration.META_lightEngineering)
+                        0, 3 -> {
+                            structure[h][slice][w] = ItemStack(IEContent.blockMetalDecoration, 1, BlockMetalDecoration.META_lightEngineering)
+                            structureComponents.put(Coord(slice, h, w),
+                                    Pair(IEContent.blockMetalDecoration, BlockMetalDecoration.META_lightEngineering))
+                        }
                         1, 2 -> when(h) {
-                            0 -> structure[h][slice][w] = ItemStack(IEContent.blockMetalDecoration, 1, BlockMetalDecoration.META_scaffolding)
-                            2 -> structure[h][slice][w] = ItemStack(IEContent.blockMetalDecoration, 1, BlockMetalDecoration.META_radiator)
+                            0 -> {
+                                structure[h][slice][w] = ItemStack(IEContent.blockMetalDecoration, 1, BlockMetalDecoration.META_scaffolding)
+                                structureComponents.put(Coord(slice, h, w),
+                                        Pair(IEContent.blockMetalDecoration, BlockMetalDecoration.META_scaffolding))
+                            }
+                            1 -> {
+                                structureComponents.put(Coord(slice, h, w),
+                                        Pair(null, 0))
+                            }
+                            2 -> {
+                                structure[h][slice][w] = ItemStack(IEContent.blockMetalDecoration, 1, BlockMetalDecoration.META_radiator)
+                                structureComponents.put(Coord(slice, h, w),
+                                        Pair(IEContent.blockMetalDecoration, BlockMetalDecoration.META_radiator))
+                            }
                         }
                     }
                 }
@@ -117,11 +135,18 @@ public object MultiblockOven : IMultiblock {
 
     private fun check(w:World, corner:Coord, facing:ForgeDirection, siding:ForgeDirection): Boolean {
         val access = MaskedWorldAccessor(w, facing, corner) // So we don't have to worry about rotation logic
+        val struct = this.structure
+        val struct2 = this.structureComponents
 
-        // TEMP
-        log.info("Base: {}, Forward1: {}, Right1: {}", access.getBlock(Coord(0,0,0)), access.getBlock(Coord(0,0,1)), access.getBlock(Coord(1,0,0)))
+        for ((k, v) in structureComponents) {
+            if (v.first == null) {
+                if (access.isAir(k)) continue else return false
+            }
+            val valid = access.getBlock(k) == v.first && access.getBlockMeta(k) == v.second
+            if (!valid) return false
+        }
 
-        return false
+        return true
     }
 
 }
