@@ -29,3 +29,6 @@ hs_err_pid*
 
 # General test run stuff
 /run/
+
+# Because no maven but don't want to redist
+/lib/*.jar
