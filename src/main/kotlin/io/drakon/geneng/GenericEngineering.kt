@@ -5,7 +5,9 @@ import cpw.mods.fml.common.SidedProxy
 import cpw.mods.fml.common.Mod.EventHandler as handler
 import cpw.mods.fml.common.event.FMLPreInitializationEvent
 import cpw.mods.fml.common.event.FMLInitializationEvent
+import cpw.mods.fml.common.event.FMLLoadCompleteEvent
 import cpw.mods.fml.common.event.FMLPostInitializationEvent
+import io.drakon.geneng.manual.registerManPages
 
 import io.drakon.geneng.proxy.CommonProxy
 import io.drakon.geneng.util.FMLObjectOrMethod
@@ -13,7 +15,7 @@ import io.drakon.geneng.util.const.*
 import io.drakon.geneng.multiblock.registerMultiblocks
 
 @FMLObjectOrMethod
-@Mod(modid = MOD_ID, name = MOD_NAME, version = MOD_VERSION, modLanguage = MOD_LANG)
+@Mod(modid = MOD_ID, name = MOD_NAME, version = MOD_VERSION, modLanguage = MOD_LANG, dependencies = "after:ImmersiveEngineering[0.6,)")
 class GenericEngineering {
 
     companion object {
@@ -23,15 +25,20 @@ class GenericEngineering {
     }
 
     @FMLObjectOrMethod @handler fun preinit(evt: FMLPreInitializationEvent) {
-
+        proxy.preInit()
     }
 
     @FMLObjectOrMethod @handler fun init(evt: FMLInitializationEvent) {
+        proxy.init()
         registerMultiblocks()
     }
 
     @FMLObjectOrMethod @handler fun postinit(evt:FMLPostInitializationEvent) {
+        proxy.postInit()
+    }
 
+    @FMLObjectOrMethod @handler fun loadComplete(evt:FMLLoadCompleteEvent) {
+        proxy.loadComplete()
     }
 
 }

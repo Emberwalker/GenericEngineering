@@ -15,7 +15,6 @@ import io.drakon.geneng.util.MaskedWorldAccessor
 import io.drakon.geneng.util.const.log
 import io.drakon.geneng.util.convenience.*
 import net.minecraftforge.common.util.ForgeDirection
-import java.util.*
 
 /**
  * Moar food, in moar space!
@@ -81,67 +80,70 @@ public object MultiblockOven : IMultiblock {
         // The top is too awkward to work with. So is the bottom. As is the unknown actually.
         if (getOrientation(side) in listOf(DOWN, UP, UNKNOWN)) return false
 
-        // Find which radiator we are...a
+        // Find which radiator we are...
         // Using the side, we know we're one of two blocks.
         val corner = Coord(x,y,z); //object { var x=x; var y=y; var z=z }
         var facing = getOrientation(side) // Direction from input face to output face; structure extends this way
-        var siding:ForgeDirection // Direction the structure extends towards from the given corner
         when (facing) {
             WEST -> {
                 if (world.getBlock(x,y,z-1) == IEContent.blockMetalDecoration && world.getBlockMetadata(x,y,z-1) == BlockMetalDecoration.META_lightEngineering) {
                     corner.z -= 1
-                    siding = SOUTH
                 } else if (world.getBlock(x,y,z-2) == IEContent.blockMetalDecoration && world.getBlockMetadata(x,y,z-2) == BlockMetalDecoration.META_lightEngineering) {
                     corner.z -= 2
-                    siding = SOUTH
                 } else return false
             }
             EAST -> {
                 if (world.getBlock(x,y,z+1) == IEContent.blockMetalDecoration && world.getBlockMetadata(x,y,z+1) == BlockMetalDecoration.META_lightEngineering) {
                     corner.z += 1
-                    siding = SOUTH
                 } else if (world.getBlock(x,y,z+2) == IEContent.blockMetalDecoration && world.getBlockMetadata(x,y,z+2) == BlockMetalDecoration.META_lightEngineering) {
                     corner.z += 2
-                    siding = SOUTH
                 } else return false
             }
             NORTH -> {
                 if (world.getBlock(x+1,y,z) == IEContent.blockMetalDecoration && world.getBlockMetadata(x+1,y,z) == BlockMetalDecoration.META_lightEngineering) {
                     corner.x += 1
-                    siding = WEST
                 } else if (world.getBlock(x+2,y,z) == IEContent.blockMetalDecoration && world.getBlockMetadata(x+2,y,z) == BlockMetalDecoration.META_lightEngineering) {
                     corner.x += 2
-                    siding = WEST
                 } else return false
             }
             SOUTH -> {
                 if (world.getBlock(x-1,y,z) == IEContent.blockMetalDecoration && world.getBlockMetadata(x-1,y,z) == BlockMetalDecoration.META_lightEngineering) {
                     corner.x -= 1
-                    siding = WEST
                 } else if (world.getBlock(x-2,y,z) == IEContent.blockMetalDecoration && world.getBlockMetadata(x-2,y,z) == BlockMetalDecoration.META_lightEngineering) {
                     corner.x -= 2
-                    siding = WEST
                 } else return false
             }
             else -> return false // Derp?
         }
         corner.y -= 2
-        sendMessageToPlayer(plr, corner.toString())
-        sendMessageToPlayer(plr, siding.name())
-        val valid = check(world, corner, facing, siding)
-        sendMessageToPlayer(plr, valid.toString())
+        val valid = check(world, corner, facing)
+
         return false // TODO
     }
 
-    private fun check(w:World, corner:Coord, facing:ForgeDirection, siding:ForgeDirection): Boolean {
+    override fun renderFormedStructure() {
+        // TODO
+    }
+
+    override fun overwriteBlockRender(stack: ItemStack?): Boolean {
+        return false
+    }
+
+    override fun getManualScale(): Float {
+        // TODO
+        return 1f
+    }
+
+    override fun canRenderFormedStructure(): Boolean {
+        // TODO
+        return false
+    }
+
+    private fun check(w:World, corner:Coord, facing:ForgeDirection): Boolean {
         val access = MaskedWorldAccessor(w, facing, corner) // So we don't have to worry about rotation logic
-        val struct = this.structure
-        val struct2 = this.structureComponents
 
         for ((k, v) in structureComponents) {
-            if (v.first == null) {
-                if (access.isAir(k)) continue else return false
-            }
+            if (v.first == null) continue
             val valid = access.getBlock(k) == v.first && access.getBlockMeta(k) == v.second
             if (!valid) return false
         }
