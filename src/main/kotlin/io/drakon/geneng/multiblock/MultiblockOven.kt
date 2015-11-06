@@ -7,13 +7,18 @@ import net.minecraft.world.World
 import net.minecraftforge.common.util.ForgeDirection.*
 
 import blusunrize.immersiveengineering.api.MultiblockHandler.IMultiblock
+import blusunrize.immersiveengineering.client.ClientUtils
 import blusunrize.immersiveengineering.common.IEContent
 import blusunrize.immersiveengineering.common.blocks.metal.BlockMetalDecoration
+import cpw.mods.fml.relauncher.Side
+import cpw.mods.fml.relauncher.SideOnly
+import io.drakon.geneng.block.BlockMultiblock
+import io.drakon.geneng.multiblock.tile.TileOven
 import io.drakon.geneng.util.Coord
+import io.drakon.geneng.util.DummyWorldAccessor
 import io.drakon.geneng.util.MaskedWorldAccessor
 
 import io.drakon.geneng.util.const.log
-import io.drakon.geneng.util.convenience.*
 import net.minecraftforge.common.util.ForgeDirection
 
 /**
@@ -24,7 +29,7 @@ import net.minecraftforge.common.util.ForgeDirection
 public object MultiblockOven : IMultiblock {
 
     private final val structure = Array(3, {Array(4, {arrayOfNulls<ItemStack>(2)})})
-    private final val structureComponents:MutableMap<Coord, Pair<Block?, Int>> = hashMapOf()
+    public final val structureComponents:MutableMap<Coord, Pair<Block?, Int>> = hashMapOf()
 
     // Populate structure
     // "slices" are linear along the structure.
@@ -118,11 +123,34 @@ public object MultiblockOven : IMultiblock {
         corner.y -= 2
         val valid = check(world, corner, facing)
 
-        return false // TODO
+        if (!valid) return false
+
+        log.info("Building struct...")
+
+        // Build!
+        val access = MaskedWorldAccessor(world, facing, corner)
+        for ((k,v) in structureComponents) {
+            if (v.first == null) continue
+            access.setBlock(k, BlockMultiblock, 0)
+            val te = TileOven(access, k)
+            access.setTile(k, te)
+            te.formed = true
+        }
+
+        log.info("Struct built.")
+
+        return true
     }
 
+    @SideOnly(Side.CLIENT)
     override fun renderFormedStructure() {
-        // TODO
+        val te = TileOven(DummyWorldAccessor(), Coord(0, 0, 0))
+        ClientUtils.bindAtlas(0)
+        ClientUtils.tes().startDrawingQuads()
+        ClientUtils.tes().setTranslation(-0.5, -1.5, -0.5)
+        ClientUtils.handleStaticTileRenderer(te, false)
+        ClientUtils.tes().draw()
+        ClientUtils.tes().setTranslation(0.0, 0.0, 0.0)
     }
 
     override fun overwriteBlockRender(stack: ItemStack?): Boolean {
@@ -134,11 +162,12 @@ public object MultiblockOven : IMultiblock {
         return 1f
     }
 
+    @SideOnly(Side.CLIENT)
     override fun canRenderFormedStructure(): Boolean {
-        // TODO
-        return false
+        return true
     }
 
+    @Suppress("OPERATOR_MODIFIER_REQUIRED")
     private fun check(w:World, corner:Coord, facing:ForgeDirection): Boolean {
         val access = MaskedWorldAccessor(w, facing, corner) // So we don't have to worry about rotation logic
 

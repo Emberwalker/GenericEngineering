@@ -26,3 +26,11 @@ public fun World.getTileEntity(coord:Coord): TileEntity? {
 public fun World.isAir(coord: Coord): Boolean {
     return this.isAirBlock(coord.x, coord.y, coord.z)
 }
+
+public fun World.setBlock(coord: Coord, block: Block, meta: Int):Boolean {
+    return this.setBlock(coord.x, coord.y, coord.z, block, meta, 3)
+}
+
+public fun World.setTile(coord: Coord, te:TileEntity) {
+    this.setTileEntity(coord.x, coord.y, coord.z, te)
+}

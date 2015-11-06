@@ -18,8 +18,12 @@ import io.drakon.geneng.util.convenience.i18n
 
 private var hasRegisteredManPages = false
 
+@Suppress("UNREACHABLE_CODE")
 @SideOnly(Side.CLIENT)
 public fun registerManPages() {
+    // TODO: Manual pages are borkbork right now
+    return
+
     if (hasRegisteredManPages) {
         log.warn("Someone called registerManPages again...")
         return
