@@ -10,6 +10,6 @@ import net.minecraft.util.StatCollector
  * @author Arkan <arkan@drakon.io>
  */
 
-public fun sendMessageToPlayer(player:EntityPlayer, msg:String) {
+fun sendMessageToPlayer(player:EntityPlayer, msg:String) {
     player.addChatMessage(ChatComponentText(msg))
 }

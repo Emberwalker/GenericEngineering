@@ -1,44 +1,32 @@
 package io.drakon.geneng
 
-import cpw.mods.fml.common.Mod
-import cpw.mods.fml.common.SidedProxy
-import cpw.mods.fml.common.Mod.EventHandler as handler
-import cpw.mods.fml.common.event.FMLPreInitializationEvent
-import cpw.mods.fml.common.event.FMLInitializationEvent
-import cpw.mods.fml.common.event.FMLLoadCompleteEvent
-import cpw.mods.fml.common.event.FMLPostInitializationEvent
-import io.drakon.geneng.block.registerBlocks
-import io.drakon.geneng.manual.registerManPages
+import net.minecraftforge.fml.common.Mod
+import net.minecraftforge.fml.common.Mod.EventHandler
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent
+import net.minecraftforge.fml.common.event.FMLInitializationEvent
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent
 
-import io.drakon.geneng.proxy.CommonProxy
 import io.drakon.geneng.util.FMLObjectOrMethod
 import io.drakon.geneng.util.const.*
-import io.drakon.geneng.multiblock.registerMultiblocks
-import io.drakon.geneng.multiblock.tile.registerMultiTiles
 
 @FMLObjectOrMethod
-@Mod(modid = MOD_ID, name = MOD_NAME, version = MOD_VERSION, modLanguage = MOD_LANG, dependencies = "after:ImmersiveEngineering[0.6,)")
-class GenericEngineering {
+@Mod(modid = MOD_ID, name = MOD_NAME, version = MOD_VERSION, modLanguage = MOD_LANG,
+        modLanguageAdapter = MOD_ADAPTER, dependencies = "after:ImmersiveEngineering[0.7,)")
+object GenericEngineering {
 
-    companion object {
-        @FMLObjectOrMethod @JvmStatic
-        @SidedProxy(serverSide="io.drakon.geneng.proxy.CommonProxy", clientSide="io.drakon.geneng.proxy.ClientProxy")
-        public var proxy:CommonProxy = CommonProxy()
+    @EventHandler @FMLObjectOrMethod
+    fun preinit(evt: FMLPreInitializationEvent) {
+        // TODO
     }
 
-    @FMLObjectOrMethod @handler fun preinit(evt: FMLPreInitializationEvent) {
-        proxy.preInit()
+    @EventHandler @FMLObjectOrMethod
+    fun init(evt: FMLInitializationEvent) {
+        // TODO
     }
 
-    @FMLObjectOrMethod @handler fun init(evt: FMLInitializationEvent) {
-        proxy.init()
-        registerBlocks()
-        registerMultiTiles()
-        registerMultiblocks()
-    }
-
-    @FMLObjectOrMethod @handler fun postinit(evt:FMLPostInitializationEvent) {
-        proxy.postInit()
+    @EventHandler @FMLObjectOrMethod
+    fun postinit(evt: FMLPostInitializationEvent) {
+        // TODO
     }
 
 }
