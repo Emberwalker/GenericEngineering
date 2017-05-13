@@ -1,0 +1,16 @@
+[
+  {
+    "modid": "geneng",
+    "name": "Generic Engineering",
+    "description": "Small additions to Immersive Engineering.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "",
+    "updateUrl": "",
+    "authorList": ["Arkan"],
+    "credits": "Blusunrize and Damien_Hazard for IE.",
+    "logoFile": "geneng.png",
+    "screenshots": [],
+    "dependencies": []
+  }
+]

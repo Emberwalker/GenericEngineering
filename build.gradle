@@ -1,0 +1,141 @@
+/*
+* GenEng build file.
+* Derived from Thumpcord and Progenitor build files.
+*/
+
+//================================================
+// Pre-execute
+
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven {
+            name = "Forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+    }
+}
+
+repositories {
+    maven {
+        name 'Forge'
+        url 'http://files.minecraftforge.net/maven'
+    }
+    mavenCentral()
+}
+
+apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'scala'
+apply plugin: 'idea'
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'maven-publish'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+configurations {
+    shade
+    compile.extendsFrom shade
+}
+
+dependencies {
+    compile files(fileTree(dir: 'lib', includes: ['*.jar']))
+    shade "org.scala-lang:scala-library:$SCALA_VER"
+}
+
+minecraft {
+    version = "$MC_VER-$FORGE_VER"
+    mappings = MAPPINGS_VER
+    runDir = 'run'
+    replace '@VERSION@', MOD_VER
+    replace '@SCALA@', SCALA_VER
+}
+
+shadowJar {
+    classifier = null
+    configurations = [project.configurations.shade]
+
+    def REPACK_PACKAGE = 'io.drakon.geneng.repack'
+
+    relocate 'scala', "${REPACK_PACKAGE}.scala"
+    relocate 'org.intellij', "${REPACK_PACKAGE}.intellij"
+    relocate 'org.jetbrains', "${REPACK_PACKAGE}.jetbrains"
+}
+
+// Dirty hack to replace 'jar' with 'shadowJar'
+jar.deleteAllActions().dependsOn shadowJar
+
+//================================================
+// Jar data
+
+// Grab system env
+def env = System.getenv()
+
+def buildNumberAddition = project.hasProperty("BUILD_NUMBER") ? ".${project.property("BUILD_NUMBER")}" : ""
+
+version = MC_VER + "-" + MOD_VER + buildNumberAddition
+group = "io.drakon"
+project.setProperty("archivesBaseName", "geneng")
+
+//================================================
+// Jar tasks
+
+// Disable Javadoc doclint on JVM 1.8
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+}
+
+// Borrowed from https://github.com/McJty/RFTools/blob/1.10/build.gradle
+processResources {
+    // this will ensure that this task is redone when the versions change.
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    // replace stuff in mcmod.info, nothing else
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+
+        // replace version and mcversion
+        expand 'version': project.version, 'mcversion': project.minecraft.version
+    }
+
+    // copy everything else, thats not the mcmod.info
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    classifier = 'deobf'
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            artifact deobfJar
+
+            artifact shadowJar {
+                classifier ""
+            }
+
+            artifact sourceJar
+        }
+    }
+}
